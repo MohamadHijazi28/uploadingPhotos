@@ -9,32 +9,30 @@ public class UploadImage {
     private String Link1;
     private String Link2;
     private String Link3;
+    private String PriceInLink1;
+    private String PriceInLink2;
+    private String PriceInLink3;
     private String imagePath;
-    private Bitmap ImageUri;
+    private String idItem;
+    //private Bitmap ImageUri;
 
     public UploadImage(){
 
     }
 
-    public UploadImage(String ItemName, String ItemPrice, String ItemInfo, String Link1, String Link2, String Link3, String imagePath){
-        this.ItemName=ItemName;
-        this.ItemPrice=ItemPrice;
-        this.ItemInfo=ItemInfo;
-        this.Link1=Link1;
-        this.Link2=Link2;
-        this.Link3=Link3;
-        this.imagePath=imagePath;
 
-    }
-    public UploadImage(String ItemName, String ItemPrice, String ItemInfo, String Link1, String Link2, String Link3, Bitmap ImageUri){
-        this.ItemName=ItemName;
-        this.ItemPrice=ItemPrice;
-        this.ItemInfo=ItemInfo;
-        this.Link1=Link1;
-        this.Link2=Link2;
-        this.Link3=Link3;
-        this.ImageUri=ImageUri;
-
+    public UploadImage(String itemName, String itemPrice, String itemInfo, String link1, String link2, String link3, String priceInLink1, String priceInLink2, String priceInLink3, String imagePath, String idItem) {
+        ItemName = itemName;
+        ItemPrice = itemPrice;
+        ItemInfo = itemInfo;
+        Link1 = link1;
+        Link2 = link2;
+        Link3 = link3;
+        PriceInLink1 = priceInLink1;
+        PriceInLink2 = priceInLink2;
+        PriceInLink3 = priceInLink3;
+        this.imagePath = imagePath;
+        this.idItem = idItem;
     }
 
     public String getItemName() {
@@ -85,6 +83,30 @@ public class UploadImage {
         Link3 = link3;
     }
 
+    public String getPriceInLink1() {
+        return PriceInLink1;
+    }
+
+    public void setPriceInLink1(String priceInLink1) {
+        PriceInLink1 = priceInLink1;
+    }
+
+    public String getPriceInLink2() {
+        return PriceInLink2;
+    }
+
+    public void setPriceInLink2(String priceInLink2) {
+        PriceInLink2 = priceInLink2;
+    }
+
+    public String getPriceInLink3() {
+        return PriceInLink3;
+    }
+
+    public void setPriceInLink3(String priceInLink3) {
+        PriceInLink3 = priceInLink3;
+    }
+
     public String getImagePath() {
         return imagePath;
     }
@@ -93,12 +115,12 @@ public class UploadImage {
         this.imagePath = imagePath;
     }
 
-    public void setImageUri(Bitmap imageUri) {
-        ImageUri = imageUri;
+    public String getIdItem() {
+        return idItem;
     }
 
-    public Bitmap getImageUri() {
-        return  ImageUri;
+    public void setIdItem(String idItem) {
+        this.idItem = idItem;
     }
 
 }

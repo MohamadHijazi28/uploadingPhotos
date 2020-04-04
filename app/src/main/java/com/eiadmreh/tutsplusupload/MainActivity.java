@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,6 +34,7 @@ import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +42,7 @@ import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private Button btnchoose, btnUpload;
-    private EditText itemName, itemPrice, itemInfo, Link1, Link2, Link3;
+    private EditText itemName, itemPrice, itemInfo, Link1, Link2, Link3, PriceInLink1, PriceInLink2, PriceInLink3;
     private ImageView imageView;
 
     private Uri filePath;
@@ -67,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
         Link1=findViewById(R.id.editlink1);
         Link2=findViewById(R.id.editlink2);
         Link3=findViewById(R.id.editlink3);
+        PriceInLink1=findViewById(R.id.editprice_link1);
+        PriceInLink2=findViewById(R.id.editprice_link2);
+        PriceInLink3=findViewById(R.id.editprice_link3);
         databaseReference= FirebaseDatabase.getInstance().getReference("items");
 
 
@@ -99,46 +105,37 @@ public class MainActivity extends AppCompatActivity {
             final ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.setTitle("Uploading...");
             progressDialog.show();
-            final String imgName = itemName.getText().toString() +"." + getFileExtension( filePath );
-            UploadImage uploadImage=new UploadImage(itemName.getText().toString(),itemPrice.getText().toString(),
-                    itemInfo.getText().toString(),Link1.getText().toString(),Link2.getText().toString(),Link3.getText().toString(),imgName
-                    );
-            databaseReference.push().setValue(uploadImage);
-            StorageReference ref = storageReference.child(imgName);
-            ref.putFile(filePath)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            progressDialog.dismiss();
-                            Toast.makeText(MainActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
+            StorageReference storageReference2=storageReference.child("items_images/"+ System.currentTimeMillis()+"."+ getFileExtension(filePath));
+            storageReference2.putFile(filePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    String itemname=itemName.getText().toString().trim();
+                    String itemprice=itemPrice.getText().toString().trim();
+                    String iteminfo=itemInfo.getText().toString().trim();
+                    String link1=Link1.getText().toString().trim();
+                    String link2=Link2.getText().toString().trim();
+                    String link3=Link3.getText().toString().trim();
+                    String PriceLink1=PriceInLink1.getText().toString().trim();
+                    String PriceLink2=PriceInLink2.getText().toString().trim();
+                    String PriceLink3=PriceInLink3.getText().toString().trim();
+                    Toast.makeText( MainActivity.this, "uploaded!", Toast.LENGTH_SHORT ).show();
+                    Task<Uri> uri = taskSnapshot.getStorage().getDownloadUrl();
+                    while(!uri.isComplete());
+                    Uri url = uri.getResult();
+                    String ImgaeuploadId=databaseReference.push().getKey();
+                    UploadImage uploadImage=new UploadImage(itemname, itemprice, iteminfo, link1, link2, link3,
+                            PriceLink1, PriceLink2, PriceLink3, url.toString(), ImgaeuploadId);
+                    databaseReference.child(ImgaeuploadId).setValue(uploadImage);
+                    progressDialog.dismiss();
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
 
 
-                          /*  UploadImage uploadImage=new UploadImage(itemName.getText().toString(),itemPrice.getText().toString(),
-                                    itemInfo.getText().toString(),Link1.getText().toString(),Link2.getText().toString(),Link3.getText().toString(),
-                                    taskSnapshot.getUploadSessionUri().toString());
-                            String UploadId=databaseReference.push().getKey();
-                            databaseReference.child(UploadId).setValue(uploadImage);
-
-                           */
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            progressDialog.dismiss();
-                            Toast.makeText(MainActivity.this, "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                   /* .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                            double progress = (100.0*taskSnapshot.getBytesTransferred()/taskSnapshot
-                                    .getTotalByteCount());
-                            progressDialog.setMessage("Uploaded "+(int)progress+"%");
-                        }
-                    });
-
-                    */
         }
         if(filePath== null)
         Toast.makeText(MainActivity.this, "select an image...", Toast.LENGTH_SHORT).show();
@@ -157,29 +154,21 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
     }
     @Override
-   /* protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
-                && data != null && data.getData() != null )
-        {
-            filePath = data.getData();
-            try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
-                imageView.setImageBitmap(bitmap);
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    */
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == RESULT_OK && requestCode == PICK_IMAGE_REQUEST){
             filePath = data.getData();
             imageView.setImageURI( filePath );
+
+           /* try {
+                Bitmap bitmap= MediaStore.Images.Media.getBitmap(getContentResolver(),filePath);
+                imageView.setImageBitmap(bitmap);
+            }
+            catch (Exception e){
+                Toast.makeText(this,e.getMessage(),Toast.LENGTH_SHORT).show();
+            }
+
+            */
         }
     }
     private String getImageType(String name){
